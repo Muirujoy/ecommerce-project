@@ -1,20 +1,29 @@
+import Image from "next/image";
 import { Product } from "../types/product";
 
-interface Props {
+type ProductCardProps = {
   product: Product;
-  onAddToCart: (product: Product) => void; // must be passed as prop
-}
+  onAddToCart: (product: Product) => void;
+};
 
-export default function ProductCard({ product, onAddToCart }: Props) {
+export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   return (
-    <div className="border rounded-lg p-4 shadow hover:shadow-lg transition flex flex-col">
-      <img src={product.image} alt={product.title} className="h-40 mx-auto mb-2 object-contain" />
-      <h2 className="font-semibold text-sm mt-2 truncate">{product.title}</h2>
-      <p className="text-gray-500 text-xs">{product.category}</p>
-      <p className="text-blue-600 font-bold mt-1">${product.price}</p>
+    <div className="bg-gray-900 text-white rounded-2xl shadow-lg p-4 flex flex-col justify-between">
+      <div className="relative w-full h-48 mb-4">
+        <Image
+          src={product.image || "/fallback-image.png"}
+          alt={product.title}
+          layout="fill"
+          objectFit="contain"
+          className="rounded-lg"
+        />
+      </div>
+      <h2 className="text-lg font-semibold truncate">{product.title}</h2>
+      <p className="text-sm text-gray-400">{product.category}</p>
+      <p className="text-xl font-bold text-blue-400">${product.price}</p>
       <button
-        onClick={() => onAddToCart(product)} // important!
-        className="mt-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded"
+        onClick={() => onAddToCart(product)}
+        className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded-lg"
       >
         Add to Cart
       </button>

@@ -1,32 +1,25 @@
-import Image from "next/image";
-import { Product } from "../types/product";
+import React from "react";
 
-type ProductCardProps = {
-  product: Product;
-  onAddToCart: (product: Product) => void;
-};
+interface Product {
+  id: number;
+  title: string;
+  price: number;
+  description: string;
+  category: string;
+  image: string;
+}
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product }: { product: Product }) {
   return (
-    <div className="bg-gray-900 text-white rounded-2xl shadow-lg p-4 flex flex-col justify-between">
-      <div className="relative w-full h-48 mb-4">
-        <Image
-          src={product.image || "/fallback-image.png"}
-          alt={product.title}
-          layout="fill"
-          objectFit="contain"
-          className="rounded-lg"
-        />
-      </div>
-      <h2 className="text-lg font-semibold truncate">{product.title}</h2>
-      <p className="text-sm text-gray-400">{product.category}</p>
-      <p className="text-xl font-bold text-blue-400">${product.price}</p>
-      <button
-        onClick={() => onAddToCart(product)}
-        className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded-lg"
-      >
-        Add to Cart
-      </button>
+    <div className="border rounded-lg shadow-md p-4 hover:shadow-lg transition">
+      <img
+        src={product.image}
+        alt={product.title}
+        className="w-full h-48 object-contain mb-4"
+      />
+      <h2 className="text-lg font-semibold line-clamp-2">{product.title}</h2>
+      <p className="text-gray-500 text-sm">{product.category}</p>
+      <p className="text-green-600 font-bold mt-2">${product.price}</p>
     </div>
   );
 }

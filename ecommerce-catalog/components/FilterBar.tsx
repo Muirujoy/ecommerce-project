@@ -1,95 +1,27 @@
 import React from "react";
 
-interface Props {
+interface FilterBarProps {
   categories: string[];
   selectedCategory: string;
-  onCategoryChange: (value: string) => void;
-
-  sort: string;
-  onSortChange: (value: string) => void;
-
-  search: string;
-  onSearchChange: (value: string) => void;
-
-  quantity: string;
-  onQuantityChange: (value: string) => void;
-
-  gender: string;
-  onGenderChange: (value: string) => void;
+  onCategoryChange: (category: string) => void;
 }
 
-export default function FilterBar({
-  categories,
-  selectedCategory,
-  onCategoryChange,
-  sort,
-  onSortChange,
-  search,
-  onSearchChange,
-  quantity,
-  onQuantityChange,
-  gender,
-  onGenderChange,
-}: Props) {
+export default function FilterBar({ categories, selectedCategory, onCategoryChange }: FilterBarProps) {
   return (
-    <div className="flex flex-wrap gap-4 mb-6 items-center">
-      {/* Category Filter */}
-      <select
-        value={selectedCategory}
-        onChange={(e) => onCategoryChange(e.target.value)}
-        className="border p-2 rounded"
-      >
-        <option value="">All Categories</option>
-        {categories.map((cat) => (
-          <option key={cat} value={cat}>
-            {cat}
-          </option>
-        ))}
-      </select>
-
-      {/* Price Sort */}
-      <select
-        value={sort}
-        onChange={(e) => onSortChange(e.target.value)}
-        className="border p-2 rounded"
-      >
-        <option value="">Sort by Price</option>
-        <option value="asc">Low → High</option>
-        <option value="desc">High → Low</option>
-      </select>
-
-      {/* Quantity Filter */}
-      <select
-        value={quantity}
-        onChange={(e) => onQuantityChange(e.target.value)}
-        className="border p-2 rounded"
-      >
-        <option value="">All Quantities</option>
-        <option value="1">1+</option>
-        <option value="5">5+</option>
-        <option value="10">10+</option>
-      </select>
-
-      {/* Gender Filter */}
-      <select
-        value={gender}
-        onChange={(e) => onGenderChange(e.target.value)}
-        className="border p-2 rounded"
-      >
-        <option value="">All Genders</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-        <option value="unisex">Unisex</option>
-      </select>
-
-      {/* Search */}
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="Search products..."
-        className="border p-2 rounded flex-1 min-w-[150px]"
-      />
+    <div className="flex flex-wrap gap-4 mb-6">
+      {categories.map((category) => (
+        <button
+          key={category}
+          onClick={() => onCategoryChange(category)}
+          className={`px-4 py-2 rounded-full transition ${
+            selectedCategory === category
+              ? "bg-yellow-500 text-black font-bold"
+              : "bg-gray-800 text-white hover:bg-gray-700"
+          }`}
+        >
+          {category}
+        </button>
+      ))}
     </div>
   );
 }

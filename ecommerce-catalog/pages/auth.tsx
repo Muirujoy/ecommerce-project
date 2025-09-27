@@ -1,120 +1,158 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useRouter } from "next/router";
 
-export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true); 
+export default function AuthPage() {
+  const router = useRouter();
+  const [isLogin, setIsLogin] = useState(false); // toggle form
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user && isLogin) {
-      window.location.href = "/catalog"; 
+  // Handle signup
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      if (!name || !email || !password) {
+        setError("Please fill in all fields");
+      } else {
+        alert("Sign Up successful!");
+        setIsLogin(true); // switch to login form
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong");
     }
-  }, [isLogin]);
-
-  const validateName = (n: string) => /^[A-Za-z]+\s[A-Za-z]+$/.test(n);
-  const validatePhone = (p: string) => /^\d+$/.test(p);
-  const validateEmail = (e: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-
-  const handleSignUp = () => {
-    if (!validateName(name)) return alert("Enter first and last name in letters only");
-    if (!validatePhone(phone)) return alert("Phone must be digits only");
-    if (!validateEmail(email)) return alert("Enter a valid email");
-    if (!country) return alert("Select your country");
-
-    const user = { name, phone, email, country };
-    localStorage.setItem("user", JSON.stringify(user));
-    alert("Account created!");
-    window.location.href = "/catalog";
   };
 
-  const handleLogin = () => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) return alert("No account found. Please sign up.");
-    const user = JSON.parse(storedUser);
+  // Handle login
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-    if (user.name === name) {
-      window.location.href = "/catalog";
-    } else {
-      alert("Account not found. Please sign up.");
-      setIsLogin(false);
+    try {
+      if (!name) {
+        setError("Please enter your name");
+      } else {
+        alert(`Welcome back, ${name}!`);
+        router.push("/catalog"); // redirect to Catalog
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
-      <h1 className="text-4xl font-bold mb-6 text-yellow-500"> MUJOS SHOP</h1>
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        {/* MUJOS SHOP Logo */}
+<div className="flex justify-center mb-8">
+  <svg
+    width="300"
+    height="80"
+    viewBox="0 0 300 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <text
+      x="50%"
+      y="50%"
+      dominantBaseline="middle"
+      textAnchor="middle"
+      fontSize="36"
+      fontWeight="900"
+      fill="url(#goldGradient)"
+      style={{ fontFamily: "Arial Black, sans-serif" }}
+    >
+      MUJOS SHOP
+    </text>
+    <defs>
+      <linearGradient id="goldGradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#FFD700" />
+        <stop offset="100%" stopColor="#FFA500" />
+      </linearGradient>
+    </defs>
+  </svg>
+</div>
 
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-        {isLogin ? <h2 className="text-2xl font-semibold mb-4">Log In</h2> :
-          <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>}
 
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border p-2 rounded w-full mb-3"
-        />
+        {!isLogin ? (
+          // Sign Up Form
+          <form onSubmit={handleSignUp} className="flex flex-col gap-4">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        {!isLogin && (
-          <>
             <input
               type="text"
-              placeholder="Phone Number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="border p-2 rounded w-full mb-3"
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="border p-2 rounded focus:outline-none focus:ring focus:border-yellow-500 bg-gray-800 text-white"
+              required
             />
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="border p-2 rounded w-full mb-3"
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="border p-2 rounded focus:outline-none focus:ring focus:border-yellow-500 bg-gray-800 text-white"
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="border p-2 rounded focus:outline-none focus:ring focus:border-yellow-500 bg-gray-800 text-white"
+              required
+            />
+
+            <button
+              type="submit"
+              className="bg-yellow-600 text-white py-2 rounded hover:bg-yellow-700 transition"
             >
-              <option value="">Select Country</option>
-              <option value="Kenya">Kenya</option>
-              <option value="USA">USA</option>
-              <option value="UK">UK</option>
-            </select>
-          </>
-        )}
+              Sign Up
+            </button>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border p-2 rounded w-full mb-3"
-        />
-
-        {isLogin ? (
-          <button
-            onClick={handleLogin}
-            className="bg-yellow-500 text-white px-4 py-2 rounded w-full mb-2"
-          >
-            Log In
-          </button>
+            <p className="text-sm text-center mt-2 text-gray-300">
+              Already have an account?{" "}
+              <button
+                type="button"
+                className="text-yellow-500 underline hover:text-yellow-400"
+                onClick={() => setIsLogin(true)}
+              >
+                Log In
+              </button>
+            </p>
+          </form>
         ) : (
-          <button
-            onClick={handleSignUp}
-            className="bg-yellow-500 text-white px-4 py-2 rounded w-full mb-2"
-          >
-            Sign Up
-          </button>
-        )}
+          // Login Form
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        <p className="text-center text-sm text-gray-900 mt-2">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <span
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-gray-900 cursor-pointer underline"
-          >
-            {isLogin ? "Sign Up" : "Log In"}
-          </span>
-        </p>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="border p-2 rounded focus:outline-none focus:ring focus:border-yellow-500 bg-gray-800 text-white"
+              required
+            />
+
+            <button
+              type="submit"
+              className="bg-yellow-600 text-white py-2 rounded hover:bg-yellow-700 transition"
+            >
+              Log In
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

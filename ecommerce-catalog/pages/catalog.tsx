@@ -1,92 +1,156 @@
-import { useState, useEffect, useCallback } from "react";
-import { Product } from "../types/product";
-import { getProducts, getCategories } from "../lib/api";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import NavBar from "../components/NavBar";
 import ProductCard from "../components/ProductCard";
 import FilterBar from "../components/FilterBar";
-import Navbar from "../components/NavBar";
+
+interface Product {
+  id: number;
+  title: string;
+  price: number;
+  description: string;
+  category: string;
+  image: string;
+}
 
 export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
-  const [cart, setCart] = useState<Product[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Filters
-  const [category, setCategory] = useState("");
-  const [sort, setSort] = useState("");
-  const [search, setSearch] = useState("");
+  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [showCart, setShowCart] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
-  const loadProducts = useCallback(async () => {
-    if (loading || !hasMore) return;
-    setLoading(true);
+  const [chatMessages, setChatMessages] = useState<{ sender: string; message: string }[]>([
+    { sender: "Support", message: "Hello! How can I help you?" },
+  ]);
+  const [chatInput, setChatInput] = useState("");
 
-    try {
-      const newProducts = await getProducts(10, (page - 1) * 10);
-      setProducts(prev => [...prev, ...newProducts]);
-      setHasMore(newProducts.length > 0);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch("https://fakestoreapi.com/products");
+        const data: Product[] = await res.json();
+        setProducts(data);
+        const uniqueCategories = Array.from(new Set(data.map((p) => p.category)));
+        setCategories(["All", ...uniqueCategories]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [loading, hasMore, page]);
-
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts, page]);
-
-  useEffect(() => {
-    getCategories().then(setCategories).catch(console.error);
+    fetchProducts();
   }, []);
 
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowCart(false);
+        setShowUserMenu(false);
+        setShowChat(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (loading) return <p className="p-4 text-yellow-500">Loading products...</p>;
+
+  // Filter products by category AND search
   const filteredProducts = products
-    .filter(p => (category ? p.category === category : true))
-    .filter(p => (search ? p.title.toLowerCase().includes(search.toLowerCase()) : true))
-    .sort((a, b) => {
-      if (sort === "asc") return a.price - b.price;
-      if (sort === "desc") return b.price - a.price;
-      return 0;
-    });
+    .filter((p) => selectedCategory === "All" || p.category === selectedCategory)
+    .filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const handleAddToCart = (product: Product) => setCart(prev => [...prev, product]);
+  const addToCart = (product: Product) => setCartItems([...cartItems, product]);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    if (target.scrollHeight - target.scrollTop === target.clientHeight) {
-      setPage(prev => prev + 1);
-    }
+  const handleSendMessage = () => {
+    if (chatInput.trim() === "") return;
+    setChatMessages([...chatMessages, { sender: "You", message: chatInput }]);
+    setChatInput("");
+  };
+
+  const handleLogout = () => {
+    alert("Logging out...");
+  };
+
+  // Mutually exclusive dropdown toggles
+  const handleCartToggle = () => {
+    setShowCart(!showCart);
+    setShowUserMenu(false);
+    setShowChat(false);
+  };
+  const handleUserMenuToggle = () => {
+    setShowUserMenu(!showUserMenu);
+    setShowCart(false);
+    setShowChat(false);
+  };
+  const handleChatToggle = () => {
+    setShowChat(!showChat);
+    setShowCart(false);
+    setShowUserMenu(false);
   };
 
   return (
-    <div className="h-screen overflow-y-auto" onScroll={handleScroll}>
-      <Navbar
-        cart={cart}
-        onRemoveFromCart={index => setCart(prev => prev.filter((_, i) => i !== index))}
+    <div className="min-h-screen bg-black text-white" ref={dropdownRef}>
+      {/* NavBar */}
+      <NavBar
+        cartItems={cartItems}
+        showCart={showCart}
+        showUserMenu={showUserMenu}
+        showChat={showChat}
+        onCartClick={handleCartToggle}
+        onUserClick={handleUserMenuToggle}
+        onChatClick={handleChatToggle}
+        onLogout={handleLogout}
+        chatMessages={chatMessages}
+        chatInput={chatInput}
+        setChatInput={setChatInput}
+        handleSendMessage={handleSendMessage}
       />
-      <main className="max-w-6xl mx-auto p-6">
-        <h1 className="text-5xl font-bold text-yellow-500 mb-6">MUJOS SHOP</h1>
+
+      {/* Search + Filter */}
+      <div className="pt-28 px-6 max-w-7xl mx-auto">
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full mb-4 p-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:border-yellow-500"
+        />
+
         <FilterBar
-                  categories={categories}
-                  selectedCategory={category}
-                  onCategoryChange={setCategory}
-                  sort={sort}
-                  onSortChange={setSort}
-                  search={search}
-                  onSearchChange={setSearch} quantity={""} onQuantityChange={function (value: string): void {
-                      throw new Error("Function not implemented.");
-                  } } gender={""} onGenderChange={function (value: string): void {
-                      throw new Error("Function not implemented.");
-                  } }        />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map(product => (
-            <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
+
+        {/* Product Grid */}
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <div key={product.id}>
+              <ProductCard product={product} />
+              <button
+                onClick={() => addToCart(product)}
+                className="mt-2 w-full bg-yellow-500 text-black py-1 rounded hover:bg-yellow-400 transition"
+              >
+                Add to Cart
+              </button>
+            </div>
           ))}
+          {filteredProducts.length === 0 && (
+            <p className="text-gray-400 col-span-full text-center mt-8">No products found.</p>
+          )}
         </div>
-        {loading && <div className="text-center py-4">Loading...</div>}
-        {!hasMore && <div className="text-center py-4">No more products</div>}
-      </main>
+      </div>
     </div>
   );
 }

@@ -115,8 +115,8 @@ Installation
 
 Clone the repository:
 
-git clone https://github.com/your-username/mujos-shop.git
-cd mujos-shop
+git clone https://github.com/Muirujoy/ecommerce-project.git
+cd ecommerce-project
 
 
 Install dependencies:
@@ -137,7 +137,7 @@ Open http://localhost:3000
 After login/sign-up, you are redirected to /catalog
 
 Project Structure
-mujo-shop/
+ecommerce-catalog/
 ├─ components/
 │  ├─ NavBar.tsx          # Navigation bar with icons and dropdowns
 │  ├─ ProductCard.tsx     # Individual product cards
